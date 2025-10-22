@@ -52,7 +52,7 @@ export class Company {
   updatedAt: Date;
 
   // Relations
-  @OneToOne(() => User, { eager: true })
+  @OneToOne(() => User)
   @JoinColumn({ name: 'user_id' })
   user: User;
 

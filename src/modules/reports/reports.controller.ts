@@ -25,7 +25,7 @@ export class ReportsController {
   @Post()
   @Roles(UserRole.ADMIN_TALENTREE, UserRole.COMPANY, UserRole.EVALUATOR)
   create(@Body() createReportDto: CreateReportDto, @Request() req) {
-    return this.reportsService.create(createReportDto, req.user);
+    return this.reportsService.create(createReportDto, req.user.id);
   }
 
   @Get()

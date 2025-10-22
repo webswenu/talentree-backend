@@ -1,7 +1,10 @@
-import { NestFactory } from '@nestjs/core';
-import { ValidationPipe } from '@nestjs/common';
+import { NestFactory, Reflector } from '@nestjs/core';
+import { ValidationPipe, ClassSerializerInterceptor } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { AppModule } from './app.module';
+import { TransformResponseInterceptor } from './common/interceptors/transform-response.interceptor';
+import { AuditInterceptor } from './common/interceptors/audit.interceptor';
+import { AuditService } from './modules/audit/audit.service';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -29,6 +32,14 @@ async function bootstrap() {
         enableImplicitConversion: true,
       },
     }),
+  );
+
+  // Global Interceptors
+  const auditService = app.get(AuditService);
+  app.useGlobalInterceptors(
+    new ClassSerializerInterceptor(app.get(Reflector)),
+    new TransformResponseInterceptor(),
+    new AuditInterceptor(auditService),
   );
 
   // Port

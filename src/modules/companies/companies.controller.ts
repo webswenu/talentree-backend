@@ -30,6 +30,12 @@ export class CompaniesController {
     return this.companiesService.create(createCompanyDto);
   }
 
+  @Get('stats')
+  @Roles(UserRole.ADMIN_TALENTREE)
+  getStats() {
+    return this.companiesService.getStats();
+  }
+
   @Get()
   @Roles(UserRole.ADMIN_TALENTREE)
   findAll() {

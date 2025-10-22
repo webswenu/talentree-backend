@@ -4,6 +4,7 @@ import {
   Post,
   Body,
   Query,
+  Param,
   UseGuards,
 } from '@nestjs/common';
 import { AuditService } from './audit.service';
@@ -47,22 +48,22 @@ export class AuditController {
 
   @Get('user/:userId')
   @Roles(UserRole.ADMIN_TALENTREE)
-  findByUser(@Query('userId') userId: string) {
+  findByUser(@Param('userId') userId: string) {
     return this.auditService.findByUser(userId);
   }
 
   @Get('entity/:entityType/:entityId')
   @Roles(UserRole.ADMIN_TALENTREE)
   findByEntity(
-    @Query('entityType') entityType: string,
-    @Query('entityId') entityId: string,
+    @Param('entityType') entityType: string,
+    @Param('entityId') entityId: string,
   ) {
     return this.auditService.findByEntity(entityType, entityId);
   }
 
   @Get('action/:action')
   @Roles(UserRole.ADMIN_TALENTREE)
-  findByAction(@Query('action') action: AuditAction) {
+  findByAction(@Param('action') action: AuditAction) {
     return this.auditService.findByAction(action);
   }
 

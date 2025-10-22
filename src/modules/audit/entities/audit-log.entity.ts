@@ -38,7 +38,7 @@ export class AuditLog {
   @Column({ type: 'text', nullable: true })
   description: string;
 
-  @ManyToOne(() => User, { eager: true, nullable: true })
+  @ManyToOne(() => User, { nullable: true })
   @JoinColumn({ name: 'user_id' })
   user: User;
 

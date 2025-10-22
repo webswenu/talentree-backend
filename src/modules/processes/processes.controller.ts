@@ -32,6 +32,12 @@ export class ProcessesController {
     return this.processesService.create(createProcessDto, req.user.id);
   }
 
+  @Get('stats')
+  @Roles(UserRole.ADMIN_TALENTREE)
+  getStats() {
+    return this.processesService.getStats();
+  }
+
   @Get()
   @Roles(UserRole.ADMIN_TALENTREE, UserRole.COMPANY, UserRole.EVALUATOR)
   findAll(@Query('companyId') companyId?: string) {

@@ -55,7 +55,7 @@ export class Worker {
   @Column({ nullable: true })
   cvUrl: string;
 
-  @OneToOne(() => User, { eager: true, nullable: true })
+  @OneToOne(() => User, { nullable: true })
   @JoinColumn({ name: 'user_id' })
   user: User;
 

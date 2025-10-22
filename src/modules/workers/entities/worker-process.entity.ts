@@ -40,11 +40,11 @@ export class WorkerProcess {
   @Column({ type: 'jsonb', nullable: true })
   metadata: Record<string, any>;
 
-  @ManyToOne(() => Worker, (worker) => worker.workerProcesses, { eager: true })
+  @ManyToOne(() => Worker, (worker) => worker.workerProcesses)
   @JoinColumn({ name: 'worker_id' })
   worker: Worker;
 
-  @ManyToOne(() => SelectionProcess, { eager: true })
+  @ManyToOne(() => SelectionProcess)
   @JoinColumn({ name: 'process_id' })
   process: SelectionProcess;
 

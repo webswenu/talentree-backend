@@ -40,7 +40,6 @@ export class SelectionProcess {
   @Column({
     type: 'enum',
     enum: ProcessStatus,
-    default: ProcessStatus.DRAFT,
   })
   status: ProcessStatus;
 
@@ -60,11 +59,11 @@ export class SelectionProcess {
   updatedAt: Date;
 
   // Relations
-  @ManyToOne(() => Company, { eager: true })
+  @ManyToOne(() => Company)
   @JoinColumn({ name: 'company_id' })
   company: Company;
 
-  @ManyToOne(() => User, { eager: true })
+  @ManyToOne(() => User)
   @JoinColumn({ name: 'created_by_id' })
   createdBy: User;
 

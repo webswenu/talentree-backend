@@ -165,4 +165,24 @@ export class WorkersService {
 
     return workerProcess;
   }
+
+  async getStats(): Promise<{
+    total: number;
+    byStatus: Record<string, number>;
+  }> {
+    const total = await this.workerRepository.count();
+
+    // Count por status de WorkerProcess
+    const byStatus: Record<string, number> = {};
+    for (const status of Object.values(WorkerStatus)) {
+      byStatus[status] = await this.workerProcessRepository.count({
+        where: { status },
+      });
+    }
+
+    return {
+      total,
+      byStatus,
+    };
+  }
 }

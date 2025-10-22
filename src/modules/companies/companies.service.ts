@@ -75,4 +75,18 @@ export class CompaniesService {
       relations: ['user'],
     });
   }
+
+  async getStats(): Promise<{ total: number; active: number; inactive: number }> {
+    const total = await this.companyRepository.count();
+    const active = await this.companyRepository.count({
+      where: { isActive: true },
+    });
+    const inactive = total - active;
+
+    return {
+      total,
+      active,
+      inactive,
+    };
+  }
 }

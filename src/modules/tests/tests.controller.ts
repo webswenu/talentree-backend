@@ -25,7 +25,7 @@ export class TestsController {
   @Post()
   @Roles(UserRole.ADMIN_TALENTREE, UserRole.COMPANY)
   create(@Body() createTestDto: CreateTestDto, @Request() req) {
-    return this.testsService.create(createTestDto, req.user);
+    return this.testsService.create(createTestDto, req.user.id);
   }
 
   @Get()

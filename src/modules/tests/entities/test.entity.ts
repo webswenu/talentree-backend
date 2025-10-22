@@ -40,7 +40,7 @@ export class Test {
   @Column({ type: 'boolean', default: false })
   requiresManualReview: boolean;
 
-  @ManyToOne(() => User, { eager: true })
+  @ManyToOne(() => User)
   @JoinColumn({ name: 'created_by' })
   createdBy: User;
 

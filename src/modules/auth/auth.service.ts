@@ -40,11 +40,8 @@ export class AuthService {
     const accessToken = this.generateAccessToken(user.id, user.email, user.role);
     const refreshToken = this.generateRefreshToken(user.id);
 
-    // Eliminar password de la respuesta
-    const { password: _, ...userWithoutPassword } = user;
-
     return {
-      user: userWithoutPassword,
+      user,
       accessToken,
       refreshToken,
     };
@@ -56,8 +53,7 @@ export class AuthService {
       throw new UnauthorizedException('Usuario no válido');
     }
 
-    const { password: _, ...userWithoutPassword } = user;
-    return userWithoutPassword;
+    return user;
   }
 
   async refreshToken(refreshToken: string) {

@@ -5,7 +5,7 @@ import { Test } from './entities/test.entity';
 import { TestQuestion } from './entities/test-question.entity';
 import { CreateTestDto } from './dto/create-test.dto';
 import { UpdateTestDto } from './dto/update-test.dto';
-import { User } from '../users/entities/user.entity';
+import { UsersService } from '../users/users.service';
 
 @Injectable()
 export class TestsService {
@@ -14,10 +14,14 @@ export class TestsService {
     private readonly testRepository: Repository<Test>,
     @InjectRepository(TestQuestion)
     private readonly questionRepository: Repository<TestQuestion>,
+    private readonly usersService: UsersService,
   ) {}
 
-  async create(createTestDto: CreateTestDto, user: User): Promise<Test> {
+  async create(createTestDto: CreateTestDto, userId: string): Promise<Test> {
     const { questions, ...testData } = createTestDto;
+
+    // Verificar que el usuario existe
+    const user = await this.usersService.findOne(userId);
 
     const test = this.testRepository.create({
       ...testData,

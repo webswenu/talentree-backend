@@ -33,7 +33,7 @@ export class Notification {
   @Column({ type: 'jsonb', nullable: true })
   data: Record<string, any>;
 
-  @ManyToOne(() => User, { eager: true })
+  @ManyToOne(() => User)
   @JoinColumn({ name: 'user_id' })
   user: User;
 

@@ -19,6 +19,10 @@ export class UpdateCompanyDto {
 
   @IsString()
   @IsOptional()
+  country?: string;
+
+  @IsString()
+  @IsOptional()
   logo?: string;
 
   @IsBoolean()

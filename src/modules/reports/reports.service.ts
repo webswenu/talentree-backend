@@ -4,17 +4,21 @@ import { Repository } from 'typeorm';
 import { Report } from './entities/report.entity';
 import { CreateReportDto } from './dto/create-report.dto';
 import { UpdateReportDto } from './dto/update-report.dto';
-import { User } from '../users/entities/user.entity';
+import { UsersService } from '../users/users.service';
 
 @Injectable()
 export class ReportsService {
   constructor(
     @InjectRepository(Report)
     private readonly reportRepository: Repository<Report>,
+    private readonly usersService: UsersService,
   ) {}
 
-  async create(createReportDto: CreateReportDto, user: User): Promise<Report> {
+  async create(createReportDto: CreateReportDto, userId: string): Promise<Report> {
     const { processId, workerId, ...reportData } = createReportDto;
+
+    // Verificar que el usuario existe
+    const user = await this.usersService.findOne(userId);
 
     const report = this.reportRepository.create({
       ...reportData,

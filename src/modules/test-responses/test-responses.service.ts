@@ -210,4 +210,32 @@ export class TestResponsesService {
       order: { createdAt: 'DESC' },
     });
   }
+
+  async getStats(): Promise<{
+    total: number;
+    completed: number;
+    pending: number;
+    passed: number;
+    failed: number;
+  }> {
+    const total = await this.testResponseRepository.count();
+    const completed = await this.testResponseRepository.count({
+      where: { isCompleted: true },
+    });
+    const pending = total - completed;
+    const passed = await this.testResponseRepository.count({
+      where: { isCompleted: true, passed: true },
+    });
+    const failed = await this.testResponseRepository.count({
+      where: { isCompleted: true, passed: false },
+    });
+
+    return {
+      total,
+      completed,
+      pending,
+      passed,
+      failed,
+    };
+  }
 }

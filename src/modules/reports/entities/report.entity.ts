@@ -38,15 +38,15 @@ export class Report {
   @Column({ type: 'date', nullable: true })
   generatedDate: Date;
 
-  @ManyToOne(() => User, { eager: true })
+  @ManyToOne(() => User)
   @JoinColumn({ name: 'created_by_id' })
   createdBy: User;
 
-  @ManyToOne(() => SelectionProcess, { eager: true, nullable: true })
+  @ManyToOne(() => SelectionProcess, { nullable: true })
   @JoinColumn({ name: 'process_id' })
   process: SelectionProcess;
 
-  @ManyToOne(() => Worker, { eager: true, nullable: true })
+  @ManyToOne(() => Worker, { nullable: true })
   @JoinColumn({ name: 'worker_id' })
   worker: Worker;
 

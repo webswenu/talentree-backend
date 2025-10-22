@@ -5,7 +5,9 @@ import {
   IsDateString,
   IsInt,
   Min,
+  IsEnum,
 } from 'class-validator';
+import { ProcessStatus } from '../../../common/enums/process-status.enum';
 
 export class CreateProcessDto {
   @IsString()
@@ -29,13 +31,16 @@ export class CreateProcessDto {
   @IsOptional()
   location?: string;
 
-  @IsDateString()
-  @IsOptional()
-  startDate?: Date;
+  @IsEnum(ProcessStatus)
+  status: ProcessStatus;
 
   @IsDateString()
   @IsOptional()
-  endDate?: Date;
+  startDate?: string;
+
+  @IsDateString()
+  @IsOptional()
+  endDate?: string;
 
   @IsInt()
   @Min(1)

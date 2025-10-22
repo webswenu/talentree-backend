@@ -29,6 +29,12 @@ export class WorkersController {
     return this.workersService.create(createWorkerDto);
   }
 
+  @Get('stats')
+  @Roles(UserRole.ADMIN_TALENTREE)
+  getStats() {
+    return this.workersService.getStats();
+  }
+
   @Get()
   @Roles(UserRole.ADMIN_TALENTREE, UserRole.COMPANY, UserRole.EVALUATOR)
   findAll() {

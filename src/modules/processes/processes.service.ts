@@ -6,7 +6,9 @@ import { CreateProcessDto } from './dto/create-process.dto';
 import { UpdateProcessDto, AssignEvaluatorsDto } from './dto/update-process.dto';
 import { CompaniesService } from '../companies/companies.service';
 import { UsersService } from '../users/users.service';
+import { User } from '../users/entities/user.entity';
 import { UserRole } from '../../common/enums/user-role.enum';
+import { ProcessStatus } from '../../common/enums/process-status.enum';
 
 @Injectable()
 export class ProcessesService {
@@ -95,26 +97,67 @@ export class ProcessesService {
   ): Promise<SelectionProcess> {
     const process = await this.findOne(id);
 
-    // Verificar que todos los usuarios son evaluadores
-    const evaluators = await this.usersService.findAll();
-    const validEvaluators = evaluators.filter(
-      (user) =>
-        assignEvaluatorsDto.evaluatorIds.includes(user.id) &&
-        user.role === UserRole.EVALUATOR,
-    );
-
-    if (validEvaluators.length !== assignEvaluatorsDto.evaluatorIds.length) {
-      throw new ConflictException(
-        'Algunos usuarios no son evaluadores válidos',
-      );
+    // Verificar que todos los usuarios existen y son evaluadores
+    const validEvaluators = [];
+    for (const evaluatorId of assignEvaluatorsDto.evaluatorIds) {
+      const user = await this.usersService.findOne(evaluatorId);
+      if (user.role !== UserRole.EVALUATOR) {
+        throw new ConflictException(
+          `Usuario ${user.email} no es un evaluador válido`,
+        );
+      }
+      validEvaluators.push(user);
     }
 
     process.evaluators = validEvaluators;
     return this.processRepository.save(process);
   }
 
-  async getEvaluators(id: string): Promise<any[]> {
+  async getEvaluators(id: string): Promise<User[]> {
     const process = await this.findOne(id);
     return process.evaluators || [];
+  }
+
+  async getStats(): Promise<{
+    total: number;
+    byStatus: Record<string, number>;
+    byMonth: Array<{ month: string; count: number }>;
+  }> {
+    const total = await this.processRepository.count();
+
+    // Count por status
+    const byStatus: Record<string, number> = {};
+    for (const status of Object.values(ProcessStatus)) {
+      byStatus[status] = await this.processRepository.count({
+        where: { status },
+      });
+    }
+
+    // Procesos por mes (últimos 6 meses)
+    const sixMonthsAgo = new Date();
+    sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
+
+    const processes = await this.processRepository
+      .createQueryBuilder('process')
+      .select('DATE_TRUNC(\'month\', process.created_at)', 'month')
+      .addSelect('COUNT(*)', 'count')
+      .where('process.created_at >= :startDate', { startDate: sixMonthsAgo })
+      .groupBy('DATE_TRUNC(\'month\', process.created_at)')
+      .orderBy('month', 'ASC')
+      .getRawMany();
+
+    const byMonth = processes.map((p) => ({
+      month: new Date(p.month).toLocaleDateString('es-ES', {
+        month: 'long',
+        year: 'numeric',
+      }),
+      count: parseInt(p.count),
+    }));
+
+    return {
+      total,
+      byStatus,
+      byMonth,
+    };
   }
 }

@@ -33,7 +33,7 @@ export class TestAnswer {
   @JoinColumn({ name: 'test_response_id' })
   testResponse: TestResponse;
 
-  @ManyToOne(() => TestQuestion, { eager: true })
+  @ManyToOne(() => TestQuestion)
   @JoinColumn({ name: 'question_id' })
   question: TestQuestion;
 

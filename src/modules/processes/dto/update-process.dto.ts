@@ -37,7 +37,7 @@ export class UpdateProcessDto {
 
   @IsDateString()
   @IsOptional()
-  endDate?: Date;
+  endDate?: string;
 
   @IsInt()
   @Min(1)

@@ -21,6 +21,12 @@ import { UserRole } from '../../common/enums/user-role.enum';
 export class TestResponsesController {
   constructor(private readonly testResponsesService: TestResponsesService) {}
 
+  @Get('stats')
+  @Roles(UserRole.ADMIN_TALENTREE)
+  getStats() {
+    return this.testResponsesService.getStats();
+  }
+
   @Post('start')
   @Roles(UserRole.WORKER, UserRole.ADMIN_TALENTREE, UserRole.COMPANY)
   startTest(@Body() startTestDto: StartTestDto) {
