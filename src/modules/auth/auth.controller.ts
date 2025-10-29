@@ -10,6 +10,7 @@ import {
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
+import { RegisterWorkerDto } from './dto/register-worker.dto';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 
 @Controller('auth')
@@ -20,6 +21,12 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   async login(@Body() loginDto: LoginDto) {
     return this.authService.login(loginDto);
+  }
+
+  @Post('register/worker')
+  @HttpCode(HttpStatus.CREATED)
+  async registerWorker(@Body() registerDto: RegisterWorkerDto) {
+    return this.authService.registerWorker(registerDto);
   }
 
   @Post('refresh')
@@ -38,7 +45,6 @@ export class AuthController {
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
   async logout() {
-    // El logout se maneja en el frontend limpiando los tokens
     return { message: 'Logout exitoso' };
   }
 }

@@ -22,16 +22,16 @@ export class TestQuestion {
   type: QuestionType;
 
   @Column({ type: 'jsonb', nullable: true })
-  options: string[]; // Para preguntas de opción múltiple
+  options: string[];
 
   @Column({ type: 'jsonb', nullable: true })
-  correctAnswers: string[]; // Respuestas correctas (para autoevaluación)
+  correctAnswers: string[];
 
   @Column({ type: 'int', default: 1 })
-  points: number; // Puntos que vale la pregunta
+  points: number;
 
   @Column({ type: 'int' })
-  order: number; // Orden de la pregunta en el test
+  order: number;
 
   @Column({ type: 'boolean', default: true })
   isRequired: boolean;

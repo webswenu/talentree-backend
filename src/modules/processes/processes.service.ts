@@ -1,14 +1,24 @@
-import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ConflictException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, In } from 'typeorm';
+import { Repository } from 'typeorm';
 import { SelectionProcess } from './entities/selection-process.entity';
 import { CreateProcessDto } from './dto/create-process.dto';
-import { UpdateProcessDto, AssignEvaluatorsDto } from './dto/update-process.dto';
+import {
+  UpdateProcessDto,
+  AssignEvaluatorsDto,
+} from './dto/update-process.dto';
+import { ProcessFilterDto } from './dto/process-filter.dto';
 import { CompaniesService } from '../companies/companies.service';
 import { UsersService } from '../users/users.service';
 import { User } from '../users/entities/user.entity';
 import { UserRole } from '../../common/enums/user-role.enum';
 import { ProcessStatus } from '../../common/enums/process-status.enum';
+import { paginate } from '../../common/helpers/pagination.helper';
+import { PaginatedResult } from '../../common/dto/pagination.dto';
 
 @Injectable()
 export class ProcessesService {
@@ -25,13 +35,10 @@ export class ProcessesService {
   ): Promise<SelectionProcess> {
     const { companyId, ...processData } = createProcessDto;
 
-    // Verificar que la empresa existe
     const company = await this.companiesService.findOne(companyId);
 
-    // Verificar que el usuario existe
     const user = await this.usersService.findOne(userId);
 
-    // Verificar que el código no esté duplicado
     const existingProcess = await this.processRepository.findOne({
       where: { code: processData.code },
     });
@@ -49,11 +56,43 @@ export class ProcessesService {
     return this.processRepository.save(process);
   }
 
-  async findAll(): Promise<SelectionProcess[]> {
-    return this.processRepository.find({
-      relations: ['company', 'createdBy', 'evaluators'],
-      order: { createdAt: 'DESC' },
-    });
+  async findAll(
+    filters?: ProcessFilterDto,
+  ): Promise<PaginatedResult<SelectionProcess>> {
+    const queryBuilder = this.processRepository
+      .createQueryBuilder('process')
+      .leftJoinAndSelect('process.company', 'company')
+      .leftJoinAndSelect('process.createdBy', 'createdBy')
+      .leftJoinAndSelect('process.evaluators', 'evaluators');
+
+    if (filters?.status) {
+      queryBuilder.andWhere('process.status = :status', {
+        status: filters.status,
+      });
+    }
+
+    if (filters?.companyId) {
+      queryBuilder.andWhere('company.id = :companyId', {
+        companyId: filters.companyId,
+      });
+    }
+
+    if (filters?.evaluatorId) {
+      queryBuilder.andWhere('evaluators.id = :evaluatorId', {
+        evaluatorId: filters.evaluatorId,
+      });
+    }
+
+    if (filters?.search) {
+      queryBuilder.andWhere(
+        '(process.name ILIKE :search OR process.position ILIKE :search OR process.description ILIKE :search OR process.code ILIKE :search)',
+        { search: `%${filters.search}%` },
+      );
+    }
+
+    queryBuilder.orderBy('process.createdAt', 'DESC');
+
+    return paginate(this.processRepository, filters || {}, queryBuilder);
   }
 
   async findByCompany(companyId: string): Promise<SelectionProcess[]> {
@@ -97,7 +136,6 @@ export class ProcessesService {
   ): Promise<SelectionProcess> {
     const process = await this.findOne(id);
 
-    // Verificar que todos los usuarios existen y son evaluadores
     const validEvaluators = [];
     for (const evaluatorId of assignEvaluatorsDto.evaluatorIds) {
       const user = await this.usersService.findOne(evaluatorId);
@@ -125,7 +163,6 @@ export class ProcessesService {
   }> {
     const total = await this.processRepository.count();
 
-    // Count por status
     const byStatus: Record<string, number> = {};
     for (const status of Object.values(ProcessStatus)) {
       byStatus[status] = await this.processRepository.count({
@@ -133,16 +170,15 @@ export class ProcessesService {
       });
     }
 
-    // Procesos por mes (últimos 6 meses)
     const sixMonthsAgo = new Date();
     sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
 
     const processes = await this.processRepository
       .createQueryBuilder('process')
-      .select('DATE_TRUNC(\'month\', process.created_at)', 'month')
+      .select("DATE_TRUNC('month', process.created_at)", 'month')
       .addSelect('COUNT(*)', 'count')
       .where('process.created_at >= :startDate', { startDate: sixMonthsAgo })
-      .groupBy('DATE_TRUNC(\'month\', process.created_at)')
+      .groupBy("DATE_TRUNC('month', process.created_at)")
       .orderBy('month', 'ASC')
       .getRawMany();
 

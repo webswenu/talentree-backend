@@ -29,10 +29,10 @@ export class Test {
   type: TestType;
 
   @Column({ type: 'int', nullable: true })
-  duration: number; // en minutos
+  duration: number;
 
   @Column({ type: 'int', nullable: true })
-  passingScore: number; // puntaje mínimo para aprobar
+  passingScore: number;
 
   @Column({ type: 'boolean', default: true })
   isActive: boolean;

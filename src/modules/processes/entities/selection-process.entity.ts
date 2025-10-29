@@ -58,7 +58,6 @@ export class SelectionProcess {
   @UpdateDateColumn({ name: 'updated_at' })
   updatedAt: Date;
 
-  // Relations
   @ManyToOne(() => Company)
   @JoinColumn({ name: 'company_id' })
   company: Company;
@@ -82,10 +81,4 @@ export class SelectionProcess {
     inverseJoinColumn: { name: 'test_id', referencedColumnName: 'id' },
   })
   tests: Test[];
-
-  // @OneToMany(() => WorkerProcess, workerProcess => workerProcess.process)
-  // workerProcesses: WorkerProcess[];
-
-  // @OneToMany(() => Report, report => report.process)
-  // reports: Report[];
 }

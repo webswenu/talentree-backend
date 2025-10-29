@@ -16,11 +16,7 @@ export class ProcessSeeder {
 
   /** Helper para generar código único basado en el nombre */
   private generateCode(name: string): string {
-    const prefix = name
-      .trim()
-      .toUpperCase()
-      .replace(/\s+/g, '-')
-      .slice(0, 10);
+    const prefix = name.trim().toUpperCase().replace(/\s+/g, '-').slice(0, 10);
     const random = Math.random().toString(36).substring(2, 6).toUpperCase();
     return `${prefix}-${random}`;
   }
@@ -40,7 +36,9 @@ export class ProcessSeeder {
     const companies = await this.companyRepository.find();
 
     if (companies.length === 0) {
-      console.log('⚠️  No hay empresas. Ejecuta primero el seeder de empresas.');
+      console.log(
+        '⚠️  No hay empresas. Ejecuta primero el seeder de empresas.',
+      );
       return;
     }
 
@@ -100,8 +98,7 @@ export class ProcessSeeder {
       {
         name: 'Geólogos Junior - Anglo American',
         position: 'Geólogo Junior',
-        description:
-          'Programa de desarrollo para geólogos recién titulados',
+        description: 'Programa de desarrollo para geólogos recién titulados',
         department: 'Geología',
         location: 'Santiago',
         maxWorkers: 5,
@@ -138,8 +135,7 @@ export class ProcessSeeder {
       {
         name: 'Técnicos Eléctricos',
         position: 'Técnico Electricista',
-        description:
-          'Contratación de técnicos para mantenimiento eléctrico',
+        description: 'Contratación de técnicos para mantenimiento eléctrico',
         department: 'Mantenimiento',
         location: 'Faena Central',
         maxWorkers: 8,

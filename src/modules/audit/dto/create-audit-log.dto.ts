@@ -1,4 +1,10 @@
-import { IsEnum, IsString, IsOptional, IsObject, IsUUID } from 'class-validator';
+import {
+  IsEnum,
+  IsString,
+  IsOptional,
+  IsObject,
+  IsUUID,
+} from 'class-validator';
 import { AuditAction } from '../../../common/enums/audit-action.enum';
 
 export class CreateAuditLogDto {

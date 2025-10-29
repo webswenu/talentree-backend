@@ -22,7 +22,7 @@ export class TestResponsesController {
   constructor(private readonly testResponsesService: TestResponsesService) {}
 
   @Get('stats')
-  @Roles(UserRole.ADMIN_TALENTREE)
+  @Roles(UserRole.ADMIN_TALENTREE, UserRole.EVALUATOR)
   getStats() {
     return this.testResponsesService.getStats();
   }
@@ -47,7 +47,10 @@ export class TestResponsesController {
 
   @Patch('answer/:id/evaluate')
   @Roles(UserRole.ADMIN_TALENTREE, UserRole.COMPANY, UserRole.EVALUATOR)
-  evaluateAnswer(@Param('id') id: string, @Body() evaluateDto: EvaluateAnswerDto) {
+  evaluateAnswer(
+    @Param('id') id: string,
+    @Body() evaluateDto: EvaluateAnswerDto,
+  ) {
     return this.testResponsesService.evaluateAnswer(id, evaluateDto);
   }
 

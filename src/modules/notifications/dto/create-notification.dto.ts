@@ -1,4 +1,10 @@
-import { IsString, IsEnum, IsOptional, IsObject, IsUUID } from 'class-validator';
+import {
+  IsString,
+  IsEnum,
+  IsOptional,
+  IsObject,
+  IsUUID,
+} from 'class-validator';
 import { NotificationType } from '../../../common/enums/notification-type.enum';
 
 export class CreateNotificationDto {

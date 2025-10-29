@@ -4,7 +4,6 @@ import { ConfigService } from '@nestjs/config';
 export const getDatabaseConfig = (
   configService: ConfigService,
 ): TypeOrmModuleOptions => {
-  // Conversión segura de string/boolean a boolean real
   const parseBool = (value: string | boolean | undefined): boolean => {
     if (typeof value === 'boolean') return value;
     if (typeof value === 'string') return value.toLowerCase() === 'true';

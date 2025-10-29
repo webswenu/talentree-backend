@@ -1,4 +1,4 @@
-import { IsUUID, IsOptional, IsNotEmpty } from 'class-validator';
+import { IsUUID, IsNotEmpty } from 'class-validator';
 
 export class SubmitAnswerDto {
   @IsUUID()

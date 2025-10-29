@@ -14,10 +14,12 @@ export class ReportsService {
     private readonly usersService: UsersService,
   ) {}
 
-  async create(createReportDto: CreateReportDto, userId: string): Promise<Report> {
+  async create(
+    createReportDto: CreateReportDto,
+    userId: string,
+  ): Promise<Report> {
     const { processId, workerId, ...reportData } = createReportDto;
 
-    // Verificar que el usuario existe
     const user = await this.usersService.findOne(userId);
 
     const report = this.reportRepository.create({

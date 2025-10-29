@@ -14,7 +14,11 @@ import {
 } from '@nestjs/common';
 import { ProcessesService } from './processes.service';
 import { CreateProcessDto } from './dto/create-process.dto';
-import { UpdateProcessDto, AssignEvaluatorsDto } from './dto/update-process.dto';
+import {
+  UpdateProcessDto,
+  AssignEvaluatorsDto,
+} from './dto/update-process.dto';
+import { ProcessFilterDto } from './dto/process-filter.dto';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import { Roles } from '../../common/decorators/roles.decorator';
@@ -33,18 +37,21 @@ export class ProcessesController {
   }
 
   @Get('stats')
-  @Roles(UserRole.ADMIN_TALENTREE)
+  @Roles(UserRole.ADMIN_TALENTREE, UserRole.EVALUATOR)
   getStats() {
     return this.processesService.getStats();
   }
 
   @Get()
-  @Roles(UserRole.ADMIN_TALENTREE, UserRole.COMPANY, UserRole.EVALUATOR)
-  findAll(@Query('companyId') companyId?: string) {
-    if (companyId) {
-      return this.processesService.findByCompany(companyId);
-    }
-    return this.processesService.findAll();
+  @Roles(
+    UserRole.ADMIN_TALENTREE,
+    UserRole.COMPANY,
+    UserRole.EVALUATOR,
+    UserRole.WORKER,
+    UserRole.GUEST,
+  )
+  findAll(@Query() filters: ProcessFilterDto) {
+    return this.processesService.findAll(filters);
   }
 
   @Get(':id')
@@ -53,6 +60,7 @@ export class ProcessesController {
     UserRole.COMPANY,
     UserRole.EVALUATOR,
     UserRole.WORKER,
+    UserRole.GUEST,
   )
   findOne(@Param('id') id: string) {
     return this.processesService.findOne(id);
@@ -81,7 +89,12 @@ export class ProcessesController {
   }
 
   @Get(':id/evaluators')
-  @Roles(UserRole.ADMIN_TALENTREE, UserRole.COMPANY)
+  @Roles(
+    UserRole.ADMIN_TALENTREE,
+    UserRole.COMPANY,
+    UserRole.EVALUATOR,
+    UserRole.GUEST,
+  )
   getEvaluators(@Param('id') id: string) {
     return this.processesService.getEvaluators(id);
   }

@@ -1,4 +1,12 @@
-import { IsString, IsEnum, IsOptional, IsArray, IsInt, IsBoolean, Min } from 'class-validator';
+import {
+  IsString,
+  IsEnum,
+  IsOptional,
+  IsArray,
+  IsInt,
+  IsBoolean,
+  Min,
+} from 'class-validator';
 import { QuestionType } from '../../../common/enums/question-type.enum';
 
 export class CreateQuestionDto {

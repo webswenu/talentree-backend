@@ -9,10 +9,12 @@ import {
   UseGuards,
   HttpCode,
   HttpStatus,
+  Query,
 } from '@nestjs/common';
 import { CompaniesService } from './companies.service';
 import { CreateCompanyDto } from './dto/create-company.dto';
 import { UpdateCompanyDto } from './dto/update-company.dto';
+import { CompanyFilterDto } from './dto/company-filter.dto';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import { Roles } from '../../common/decorators/roles.decorator';
@@ -31,19 +33,30 @@ export class CompaniesController {
   }
 
   @Get('stats')
-  @Roles(UserRole.ADMIN_TALENTREE)
+  @Roles(UserRole.ADMIN_TALENTREE, UserRole.EVALUATOR)
   getStats() {
     return this.companiesService.getStats();
   }
 
+  @Get(':id/dashboard-stats')
+  @Roles(UserRole.ADMIN_TALENTREE, UserRole.COMPANY, UserRole.EVALUATOR)
+  getDashboardStats(@Param('id') id: string) {
+    return this.companiesService.getDashboardStats(id);
+  }
+
   @Get()
-  @Roles(UserRole.ADMIN_TALENTREE)
-  findAll() {
-    return this.companiesService.findAll();
+  @Roles(UserRole.ADMIN_TALENTREE, UserRole.EVALUATOR)
+  findAll(@Query() filters: CompanyFilterDto) {
+    return this.companiesService.findAll(filters);
   }
 
   @Get(':id')
-  @Roles(UserRole.ADMIN_TALENTREE, UserRole.COMPANY)
+  @Roles(
+    UserRole.ADMIN_TALENTREE,
+    UserRole.COMPANY,
+    UserRole.EVALUATOR,
+    UserRole.GUEST,
+  )
   findOne(@Param('id') id: string) {
     return this.companiesService.findOne(id);
   }

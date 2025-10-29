@@ -1,4 +1,11 @@
-import { IsString, IsEnum, IsOptional, IsObject, IsUUID, IsDateString } from 'class-validator';
+import {
+  IsString,
+  IsEnum,
+  IsOptional,
+  IsObject,
+  IsUUID,
+  IsDateString,
+} from 'class-validator';
 import { ReportType } from '../../../common/enums/report-type.enum';
 
 export class CreateReportDto {

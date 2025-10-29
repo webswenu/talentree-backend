@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { TestResponse } from './entities/test-response.entity';
@@ -17,7 +21,6 @@ export class TestResponsesService {
   ) {}
 
   async startTest(startTestDto: StartTestDto): Promise<TestResponse> {
-    // Verificar si ya existe una respuesta para este test y worker process
     const existingResponse = await this.testResponseRepository.findOne({
       where: {
         test: { id: startTestDto.testId },
@@ -43,21 +46,25 @@ export class TestResponsesService {
     return this.testResponseRepository.save(testResponse);
   }
 
-  async submitTest(responseId: string, submitTestDto: SubmitTestDto): Promise<TestResponse> {
+  async submitTest(
+    responseId: string,
+    submitTestDto: SubmitTestDto,
+  ): Promise<TestResponse> {
     const testResponse = await this.testResponseRepository.findOne({
       where: { id: responseId },
       relations: ['test', 'test.questions', 'answers'],
     });
 
     if (!testResponse) {
-      throw new NotFoundException(`TestResponse con ID ${responseId} no encontrado`);
+      throw new NotFoundException(
+        `TestResponse con ID ${responseId} no encontrado`,
+      );
     }
 
     if (testResponse.isCompleted) {
       throw new BadRequestException('Este test ya ha sido completado');
     }
 
-    // Crear o actualizar respuestas
     const answers = submitTestDto.answers.map((answerDto) => {
       const existingAnswer = testResponse.answers?.find(
         (a) => a.question.id === answerDto.questionId,
@@ -77,7 +84,6 @@ export class TestResponsesService {
 
     await this.testAnswerRepository.save(answers);
 
-    // Calcular puntaje automático si el test no requiere revisión manual
     if (!testResponse.test.requiresManualReview) {
       await this.autoEvaluate(responseId);
     }
@@ -95,7 +101,9 @@ export class TestResponsesService {
     });
 
     if (!testResponse) {
-      throw new NotFoundException(`TestResponse con ID ${responseId} no encontrado`);
+      throw new NotFoundException(
+        `TestResponse con ID ${responseId} no encontrado`,
+      );
     }
 
     let totalScore = 0;
@@ -106,7 +114,10 @@ export class TestResponsesService {
       maxScore += question.points;
 
       if (question.correctAnswers && question.correctAnswers.length > 0) {
-        const isCorrect = this.checkAnswer(answer.answer, question.correctAnswers);
+        const isCorrect = this.checkAnswer(
+          answer.answer,
+          question.correctAnswers,
+        );
         answer.isCorrect = isCorrect;
         answer.score = isCorrect ? question.points : 0;
         totalScore += answer.score;
@@ -133,14 +144,19 @@ export class TestResponsesService {
     return correctAnswers.includes(String(answer));
   }
 
-  async evaluateAnswer(answerId: string, evaluateDto: EvaluateAnswerDto): Promise<TestAnswer> {
+  async evaluateAnswer(
+    answerId: string,
+    evaluateDto: EvaluateAnswerDto,
+  ): Promise<TestAnswer> {
     const answer = await this.testAnswerRepository.findOne({
       where: { id: answerId },
       relations: ['testResponse'],
     });
 
     if (!answer) {
-      throw new NotFoundException(`TestAnswer con ID ${answerId} no encontrado`);
+      throw new NotFoundException(
+        `TestAnswer con ID ${answerId} no encontrado`,
+      );
     }
 
     answer.score = evaluateDto.score;
@@ -149,7 +165,6 @@ export class TestResponsesService {
 
     await this.testAnswerRepository.save(answer);
 
-    // Recalcular puntaje total del test
     await this.recalculateScore(answer.testResponse.id);
 
     return answer;
@@ -162,7 +177,9 @@ export class TestResponsesService {
     });
 
     if (!testResponse) {
-      throw new NotFoundException(`TestResponse con ID ${responseId} no encontrado`);
+      throw new NotFoundException(
+        `TestResponse con ID ${responseId} no encontrado`,
+      );
     }
 
     let totalScore = 0;

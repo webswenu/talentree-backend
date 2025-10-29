@@ -42,12 +42,10 @@ export class SettingsService {
     let setting = await this.findByKey(key);
 
     if (setting) {
-      // Update existing
       setting.value = value;
       if (description !== undefined) setting.description = description;
       if (isPublic !== undefined) setting.isPublic = isPublic;
     } else {
-      // Create new
       setting = this.settingRepository.create({
         key,
         value,
@@ -72,7 +70,6 @@ export class SettingsService {
     await this.settingRepository.delete({ key });
   }
 
-  // Helper methods for common settings
   async getGeneralSettings(): Promise<Record<string, any>> {
     const keys = [
       'system_name',
@@ -104,7 +101,6 @@ export class SettingsService {
     return result;
   }
 
-  // Initialize default settings
   async initializeDefaults(): Promise<void> {
     const defaults: UpdateSettingDto[] = [
       {

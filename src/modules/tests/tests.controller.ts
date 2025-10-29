@@ -47,7 +47,12 @@ export class TestsController {
   }
 
   @Get(':id/questions')
-  @Roles(UserRole.ADMIN_TALENTREE, UserRole.COMPANY, UserRole.EVALUATOR, UserRole.WORKER)
+  @Roles(
+    UserRole.ADMIN_TALENTREE,
+    UserRole.COMPANY,
+    UserRole.EVALUATOR,
+    UserRole.WORKER,
+  )
   getQuestions(@Param('id') id: string) {
     return this.testsService.getQuestions(id);
   }

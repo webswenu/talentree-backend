@@ -24,12 +24,10 @@ export class TransformResponseInterceptor<T>
   ): Observable<Response<T>> {
     return next.handle().pipe(
       map((data) => {
-        // Si la respuesta ya está en el formato correcto, devolverla tal cual
         if (data && typeof data === 'object' && 'success' in data) {
           return data;
         }
 
-        // Transformar la respuesta al formato estándar
         return {
           success: true,
           data: data,

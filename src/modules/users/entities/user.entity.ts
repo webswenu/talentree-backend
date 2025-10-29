@@ -7,7 +7,8 @@ import {
   OneToOne,
   OneToMany,
   ManyToMany,
-  JoinTable,
+  ManyToOne,
+  JoinColumn,
 } from 'typeorm';
 import { Exclude } from 'class-transformer';
 import { UserRole } from '../../../common/enums/user-role.enum';
@@ -52,29 +53,60 @@ export class User {
   @Column({ name: 'last_login', type: 'timestamp', nullable: true })
   lastLogin: Date;
 
+  @Column({
+    type: 'jsonb',
+    default: {
+      emailNotifications: true,
+      newProcesses: true,
+      applicationUpdates: true,
+      testReminders: true,
+      newEvaluations: true,
+      candidateUpdates: true,
+      processReminders: true,
+    },
+    name: 'notification_preferences',
+  })
+  notificationPreferences: {
+    emailNotifications?: boolean;
+    newProcesses?: boolean;
+    applicationUpdates?: boolean;
+    testReminders?: boolean;
+    newEvaluations?: boolean;
+    candidateUpdates?: boolean;
+    processReminders?: boolean;
+  };
+
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
 
   @UpdateDateColumn({ name: 'updated_at' })
   updatedAt: Date;
 
-  // Relations (will be added as we create other entities)
-  // @OneToOne(() => Company, company => company.user)
-  // company: Company;
+  @Column({ name: 'company_id', type: 'uuid', nullable: true })
+  companyId: string;
 
-  // @OneToMany(() => SelectionProcess, process => process.createdBy)
-  // createdProcesses: SelectionProcess[];
+  @OneToOne('Company', 'user', { nullable: true })
+  company?: any;
 
-  // @OneToMany(() => Report, report => report.uploadedBy)
-  // uploadedReports: Report[];
+  @ManyToOne('Company', { nullable: true })
+  @JoinColumn({ name: 'company_id' })
+  belongsToCompany?: any;
 
-  // @OneToMany(() => AuditLog, log => log.user)
-  // auditLogs: AuditLog[];
+  @OneToOne('Worker', 'user', { nullable: true })
+  worker?: any;
 
-  // @ManyToMany(() => Permission, permission => permission.users)
-  // @JoinTable({ name: 'user_permissions' })
-  // permissions: Permission[];
+  @OneToMany('SelectionProcess', 'createdBy')
+  createdProcesses?: any[];
 
-  // @ManyToMany(() => SelectionProcess, process => process.evaluators)
-  // evaluatedProcesses: SelectionProcess[];
+  @ManyToMany('SelectionProcess', 'evaluators')
+  evaluatedProcesses?: any[];
+
+  @OneToMany('Report', 'createdBy')
+  createdReports?: any[];
+
+  @OneToMany('AuditLog', 'user')
+  auditLogs?: any[];
+
+  @OneToMany('Notification', 'user')
+  notifications?: any[];
 }

@@ -1,13 +1,24 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, In } from 'typeorm';
+import * as fs from 'fs';
+import * as path from 'path';
 import { Worker } from './entities/worker.entity';
 import { WorkerProcess } from './entities/worker-process.entity';
+import { SelectionProcess } from '../processes/entities/selection-process.entity';
 import { CreateWorkerDto } from './dto/create-worker.dto';
 import { UpdateWorkerDto } from './dto/update-worker.dto';
 import { ApplyToProcessDto } from './dto/apply-to-process.dto';
 import { UpdateWorkerProcessStatusDto } from './dto/update-worker-process-status.dto';
+import { WorkerFilterDto } from './dto/worker-filter.dto';
 import { WorkerStatus } from '../../common/enums/worker-status.enum';
+import { ProcessStatus } from '../../common/enums/process-status.enum';
+import { paginate } from '../../common/helpers/pagination.helper';
+import { PaginatedResult } from '../../common/dto/pagination.dto';
 
 @Injectable()
 export class WorkersService {
@@ -16,6 +27,8 @@ export class WorkersService {
     private readonly workerRepository: Repository<Worker>,
     @InjectRepository(WorkerProcess)
     private readonly workerProcessRepository: Repository<WorkerProcess>,
+    @InjectRepository(SelectionProcess)
+    private readonly processRepository: Repository<SelectionProcess>,
   ) {}
 
   async create(createWorkerDto: CreateWorkerDto): Promise<Worker> {
@@ -24,18 +37,37 @@ export class WorkersService {
     });
 
     if (existingWorker) {
-      throw new BadRequestException('Trabajador con este RUT o email ya existe');
+      throw new BadRequestException(
+        'Trabajador con este RUT o email ya existe',
+      );
     }
 
     const worker = this.workerRepository.create(createWorkerDto);
     return this.workerRepository.save(worker);
   }
 
-  async findAll(): Promise<Worker[]> {
-    return this.workerRepository.find({
-      relations: ['user', 'workerProcesses'],
-      order: { createdAt: 'DESC' },
-    });
+  async findAll(filters?: WorkerFilterDto): Promise<PaginatedResult<Worker>> {
+    const queryBuilder = this.workerRepository
+      .createQueryBuilder('worker')
+      .leftJoinAndSelect('worker.user', 'user')
+      .leftJoinAndSelect('worker.workerProcesses', 'workerProcesses');
+
+    if (filters?.status) {
+      queryBuilder.andWhere('worker.status = :status', {
+        status: filters.status,
+      });
+    }
+
+    if (filters?.search) {
+      queryBuilder.andWhere(
+        '(worker.firstName ILIKE :search OR worker.lastName ILIKE :search OR worker.rut ILIKE :search OR worker.email ILIKE :search)',
+        { search: `%${filters.search}%` },
+      );
+    }
+
+    queryBuilder.orderBy('worker.createdAt', 'DESC');
+
+    return paginate(this.workerRepository, filters || {}, queryBuilder);
   }
 
   async findOne(id: string): Promise<Worker> {
@@ -58,7 +90,9 @@ export class WorkersService {
     });
 
     if (!worker) {
-      throw new NotFoundException(`Trabajador con email ${email} no encontrado`);
+      throw new NotFoundException(
+        `Trabajador con email ${email} no encontrado`,
+      );
     }
 
     return worker;
@@ -94,7 +128,6 @@ export class WorkersService {
     await this.workerRepository.remove(worker);
   }
 
-  // WorkerProcess operations
   async applyToProcess(applyDto: ApplyToProcessDto): Promise<WorkerProcess> {
     const existingApplication = await this.workerProcessRepository.findOne({
       where: {
@@ -104,7 +137,9 @@ export class WorkersService {
     });
 
     if (existingApplication) {
-      throw new BadRequestException('El trabajador ya está aplicado a este proceso');
+      throw new BadRequestException(
+        'El trabajador ya está aplicado a este proceso',
+      );
     }
 
     const workerProcess = this.workerProcessRepository.create({
@@ -144,7 +179,9 @@ export class WorkersService {
     });
 
     if (!workerProcess) {
-      throw new NotFoundException(`WorkerProcess con ID ${workerProcessId} no encontrado`);
+      throw new NotFoundException(
+        `WorkerProcess con ID ${workerProcessId} no encontrado`,
+      );
     }
 
     Object.assign(workerProcess, updateDto);
@@ -172,7 +209,6 @@ export class WorkersService {
   }> {
     const total = await this.workerRepository.count();
 
-    // Count por status de WorkerProcess
     const byStatus: Record<string, number> = {};
     for (const status of Object.values(WorkerStatus)) {
       byStatus[status] = await this.workerProcessRepository.count({
@@ -183,6 +219,112 @@ export class WorkersService {
     return {
       total,
       byStatus,
+    };
+  }
+
+  async uploadCV(workerId: string, file: Express.Multer.File): Promise<Worker> {
+    const worker = await this.findOne(workerId);
+
+    if (worker.cvUrl) {
+      const oldCvPath = path.join(process.cwd(), worker.cvUrl);
+      if (fs.existsSync(oldCvPath)) {
+        fs.unlinkSync(oldCvPath);
+      }
+    }
+
+    const cvUrl = `uploads/cvs/${file.filename}`;
+    worker.cvUrl = cvUrl;
+
+    return this.workerRepository.save(worker);
+  }
+
+  async deleteCV(workerId: string): Promise<Worker> {
+    const worker = await this.findOne(workerId);
+
+    if (!worker.cvUrl) {
+      throw new BadRequestException('El trabajador no tiene un CV cargado');
+    }
+
+    const cvPath = path.join(process.cwd(), worker.cvUrl);
+    if (fs.existsSync(cvPath)) {
+      fs.unlinkSync(cvPath);
+    }
+
+    worker.cvUrl = null;
+    return this.workerRepository.save(worker);
+  }
+
+  async getCVPath(workerId: string): Promise<string> {
+    const worker = await this.findOne(workerId);
+
+    if (!worker.cvUrl) {
+      throw new NotFoundException('El trabajador no tiene un CV cargado');
+    }
+
+    const cvPath = path.join(process.cwd(), worker.cvUrl);
+    if (!fs.existsSync(cvPath)) {
+      throw new NotFoundException('El archivo CV no existe en el servidor');
+    }
+
+    return cvPath;
+  }
+
+  async getDashboardStats(workerId: string) {
+    await this.findOne(workerId);
+
+    const totalAplicaciones = await this.workerProcessRepository.count({
+      where: { worker: { id: workerId } },
+    });
+
+    const enProceso = await this.workerProcessRepository.count({
+      where: {
+        worker: { id: workerId },
+        status: WorkerStatus.IN_PROCESS,
+      },
+    });
+
+    const finalizadas = await this.workerProcessRepository.count({
+      where: {
+        worker: { id: workerId },
+        status: In([
+          WorkerStatus.APPROVED,
+          WorkerStatus.REJECTED,
+          WorkerStatus.HIRED,
+        ]),
+      },
+    });
+
+    const processIdsApplied = await this.workerProcessRepository
+      .createQueryBuilder('wp')
+      .select('wp.process_id', 'processId')
+      .where('wp.worker_id = :workerId', { workerId })
+      .getRawMany();
+
+    const appliedProcessIds = processIdsApplied.map((p) => p.processId);
+
+    const totalActive = await this.processRepository.count({
+      where: { status: ProcessStatus.ACTIVE },
+    });
+
+    let disponibles: number;
+
+    if (appliedProcessIds.length > 0) {
+      const appliedActive = await this.processRepository
+        .createQueryBuilder('process')
+        .where('process.status = :status', { status: ProcessStatus.ACTIVE })
+        .andWhere('process.id IN (:...ids)', { ids: appliedProcessIds })
+        .getCount();
+
+      disponibles = totalActive - appliedActive;
+    } else {
+      disponibles = totalActive;
+    }
+
+    return {
+      aplicadas: totalAplicaciones,
+      enProceso,
+      finalizadas,
+      disponibles,
     };
   }
 }

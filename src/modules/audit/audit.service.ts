@@ -46,13 +46,27 @@ export class AuditService {
   }
 
   async findAll(filters?: {
+    page?: number;
+    limit?: number;
     userId?: string;
     action?: AuditAction;
     entityType?: string;
     entityId?: string;
     startDate?: Date;
     endDate?: Date;
-  }): Promise<AuditLog[]> {
+  }): Promise<{
+    data: AuditLog[];
+    meta: {
+      total: number;
+      page: number;
+      limit: number;
+      totalPages: number;
+    };
+  }> {
+    const page = filters?.page || 1;
+    const limit = filters?.limit || 50;
+    const skip = (page - 1) * limit;
+
     const where: FindOptionsWhere<AuditLog> = {};
 
     if (filters?.userId) {
@@ -80,18 +94,30 @@ export class AuditService {
     }
 
     if (filters?.startDate) {
-      queryBuilder.andWhere('audit.created_at >= :startDate', {
+      queryBuilder.andWhere('audit.createdAt >= :startDate', {
         startDate: filters.startDate,
       });
     }
 
     if (filters?.endDate) {
-      queryBuilder.andWhere('audit.created_at <= :endDate', {
+      queryBuilder.andWhere('audit.createdAt <= :endDate', {
         endDate: filters.endDate,
       });
     }
 
-    return queryBuilder.orderBy('audit.created_at', 'DESC').getMany();
+    queryBuilder.orderBy('audit.createdAt', 'DESC').skip(skip).take(limit);
+
+    const [data, total] = await queryBuilder.getManyAndCount();
+
+    return {
+      data,
+      meta: {
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit),
+      },
+    };
   }
 
   async findByUser(userId: string): Promise<AuditLog[]> {
@@ -101,7 +127,10 @@ export class AuditService {
     });
   }
 
-  async findByEntity(entityType: string, entityId: string): Promise<AuditLog[]> {
+  async findByEntity(
+    entityType: string,
+    entityId: string,
+  ): Promise<AuditLog[]> {
     return this.auditLogRepository.find({
       where: { entityType, entityId },
       order: { createdAt: 'DESC' },

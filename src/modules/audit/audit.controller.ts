@@ -29,6 +29,8 @@ export class AuditController {
   @Get()
   @Roles(UserRole.ADMIN_TALENTREE)
   findAll(
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
     @Query('userId') userId?: string,
     @Query('action') action?: AuditAction,
     @Query('entityType') entityType?: string,
@@ -37,6 +39,8 @@ export class AuditController {
     @Query('endDate') endDate?: string,
   ) {
     return this.auditService.findAll({
+      page: page ? parseInt(page, 10) : 1,
+      limit: limit ? parseInt(limit, 10) : 50,
       userId,
       action,
       entityType,

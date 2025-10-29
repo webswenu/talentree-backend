@@ -7,10 +7,7 @@ import { TestQuestion } from './entities/test-question.entity';
 import { UsersModule } from '../users/users.module';
 
 @Module({
-  imports: [
-    TypeOrmModule.forFeature([Test, TestQuestion]),
-    UsersModule,
-  ],
+  imports: [TypeOrmModule.forFeature([Test, TestQuestion]), UsersModule],
   controllers: [TestsController],
   providers: [TestsService],
   exports: [TestsService],

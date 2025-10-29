@@ -12,7 +12,9 @@ export class NotificationsService {
     private readonly notificationRepository: Repository<Notification>,
   ) {}
 
-  async create(createNotificationDto: CreateNotificationDto): Promise<Notification> {
+  async create(
+    createNotificationDto: CreateNotificationDto,
+  ): Promise<Notification> {
     const { userId, ...notificationData } = createNotificationDto;
 
     const notification = this.notificationRepository.create({
@@ -50,7 +52,10 @@ export class NotificationsService {
     return notification;
   }
 
-  async update(id: string, updateNotificationDto: UpdateNotificationDto): Promise<Notification> {
+  async update(
+    id: string,
+    updateNotificationDto: UpdateNotificationDto,
+  ): Promise<Notification> {
     const notification = await this.findOne(id);
     Object.assign(notification, updateNotificationDto);
     return this.notificationRepository.save(notification);

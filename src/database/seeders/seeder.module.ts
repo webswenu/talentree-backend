@@ -8,7 +8,6 @@ import { CompanySeeder } from './company.seeder';
 import { ProcessSeeder } from './process.seeder';
 import { TestSeeder } from './test.seeder';
 
-// Entities
 import { User } from '../../modules/users/entities/user.entity';
 import { Company } from '../../modules/companies/entities/company.entity';
 import { SelectionProcess } from '../../modules/processes/entities/selection-process.entity';
@@ -20,14 +19,12 @@ import { getDatabaseConfig } from '../../config/database.config';
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
 
-    // 👇 ESTA ES LA PARTE CLAVE
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
-      useFactory: getDatabaseConfig, // usa tu misma config que AppModule
+      useFactory: getDatabaseConfig,
     }),
 
-    // 👇 Repositorios que se usarán en los seeders
     TypeOrmModule.forFeature([
       User,
       Company,

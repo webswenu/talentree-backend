@@ -19,41 +19,36 @@ import { SettingsModule } from './modules/settings/settings.module';
 
 @Module({
   imports: [
-    // Configuration Module
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: '.env',
     }),
 
-    // Database Module
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
       useFactory: getDatabaseConfig,
     }),
 
-    // Cache Module (Redis)
-     CacheModule.registerAsync({
+    CacheModule.registerAsync({
       isGlobal: true,
       imports: [ConfigModule],
       inject: [ConfigService],
       useFactory: async (config: ConfigService) => {
-        const rawTtl = config.get<string>('CACHE_TTL_MS'); // en ms
+        const rawTtl = config.get<string>('CACHE_TTL_MS');
         const ttl = Number(rawTtl);
         const validTtl = Number.isFinite(ttl) && ttl > 0 ? ttl : undefined;
 
-        // lru-cache exige límite si no hay ttl; define capacidad
         const rawMax = config.get<string>('CACHE_MAX');
         const max = Math.max(1, Number(rawMax) || 1000);
 
         return {
-          ...(validTtl ? { ttl: validTtl } : {}), // SOLO incluir si es > 0
+          ...(validTtl ? { ttl: validTtl } : {}),
           max,
         };
       },
     }),
 
-    // Feature Modules
     AuthModule,
     UsersModule,
     CompaniesModule,

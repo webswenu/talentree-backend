@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Test } from './entities/test.entity';
@@ -20,7 +20,6 @@ export class TestsService {
   async create(createTestDto: CreateTestDto, userId: string): Promise<Test> {
     const { questions, ...testData } = createTestDto;
 
-    // Verificar que el usuario existe
     const user = await this.usersService.findOne(userId);
 
     const test = this.testRepository.create({

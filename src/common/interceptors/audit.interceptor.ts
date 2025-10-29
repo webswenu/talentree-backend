@@ -18,7 +18,6 @@ export class AuditInterceptor implements NestInterceptor {
     const { method, url, user, ip, headers } = request;
     const userAgent = headers['user-agent'] || '';
 
-    // Map HTTP methods to audit actions
     const actionMap: Record<string, AuditAction> = {
       POST: AuditAction.CREATE,
       GET: AuditAction.READ,
@@ -29,13 +28,11 @@ export class AuditInterceptor implements NestInterceptor {
 
     const action = actionMap[method] || AuditAction.READ;
 
-    // Extract entity type from URL
     const pathParts = url.split('/').filter(Boolean);
     const entityType = pathParts[1] || 'unknown'; // Skip 'api'
 
     return next.handle().pipe(
       tap((response) => {
-        // Only log successful operations
         if (user && response) {
           const entityId =
             response?.id || request.params?.id || request.query?.id;
@@ -44,7 +41,10 @@ export class AuditInterceptor implements NestInterceptor {
             .log(action, entityType, entityId, user.id, {
               ipAddress: ip,
               userAgent,
-              newValues: method === 'POST' || method === 'PATCH' ? request.body : undefined,
+              newValues:
+                method === 'POST' || method === 'PATCH'
+                  ? request.body
+                  : undefined,
             })
             .catch((error) => {
               console.error('Audit log failed:', error);
